@@ -150,10 +150,11 @@ export const itemSheet = {
     // gave carpets-data the same field (inventory-app#1807, carpets#67). The
     // outside reference's chip class resolves through the same
     // `projectColors` map as the source-database chip, keyed by
-    // `project_id`, not `project_key`. `RecordSheetView` itself still
-    // renders the chip's own text as the reference's raw `project_key`
-    // (docs/slot-catalogue.md's `related.outsideChip` key only drives the
-    // chip's class, not its label) — see the story's platform-gap note.
+    // `project_id`, not a legacy project code. `RecordSheetView` itself
+    // still renders the chip's own text as the reference's raw legacy
+    // project code (docs/slot-catalogue.md's `related.outsideChip` key only
+    // drives the chip's class, not its label) — see the story's
+    // platform-gap note.
     outsideChip: (ref) => useSiteConfig().projectColors?.[ref.project_id] ?? null,
     artisticIntroductionLabel: 'gallery.nav.artisticIntroduction',
     databaseLabel: 'gallery.search.relatedDatabase',

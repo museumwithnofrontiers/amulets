@@ -134,7 +134,7 @@ describe('website smoke test', () => {
     expect(host.querySelector('.mwnf-sheet-related')).not.toBeNull()
     // metanull/inventory-app#1727 phase 4: the chip and the "Source database"
     // line both read the item's project name from `manifest.projects` now
-    // (`useProjects().label()`), not the legacy `project_key` badge — items[0]
+    // (`useProjects().label()`), not a legacy project-code badge — items[0]
     // is amulets' own borrowed "Discover Islamic Art" project (amulets-data
     // 1.0.15).
     // inventory-app#1728: `.source-reference` is `RecordSheetView`'s own
@@ -148,7 +148,7 @@ describe('website smoke test', () => {
     // own TEXT, and whether the reference's `backward_compatibility` code
     // renders at all, are platform concerns in flux: amulets' own CI still
     // runs against the published viewer-layout 2.14.0, which always prints
-    // the reference's raw legacy `project_key` on the chip and the code in
+    // the reference's raw legacy project code on the chip and the code in
     // its own `<code>` element, while viewer-layout PR #91
     // (inventory-app#1827) resolves the chip's name through
     // `useProjects().label(ref.project_id)` instead and — since every
@@ -176,10 +176,10 @@ describe('website smoke test', () => {
 
   // metanull/inventory-app#1727 phase 4: the source-database chip's colour and
   // text come from `dataset.config.js`'s `projectColors` map and the manifest
-  // name, keyed by the item's `project_id` — not a `projectFamily(project_key)`
-  // lookup. A Sharing History item exercises a project other than amulets'
-  // dominant Islamic Art ones (items[0] above), proving `projectColors`
-  // differentiates by family, not just by presence.
+  // name, keyed by the item's `project_id` — not a `projectFamily()` lookup
+  // off a legacy project code. A Sharing History item exercises a project
+  // other than amulets' dominant Islamic Art ones (items[0] above), proving
+  // `projectColors` differentiates by family, not just by presence.
   it('colours and names the source-database chip from the manifest projects section', async () => {
     const { app, host } = await mountSite('#/item/0dda7d39-b57f-5849-bcea-6897a0d0d4be')
     await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet-source .mwnf-chip')).not.toBeNull(), { timeout: 20000 })
@@ -195,7 +195,7 @@ describe('website smoke test', () => {
 
   // metanull/inventory-app#1727 phase 4: the "added within Explore Islamic Art
   // Collections" notice is driven by `dataset.config.js`'s `noticeProjects`
-  // list of project ids, not a literal `project_key === 'EPM'` check — it
+  // list of project ids, not a literal legacy project-code check — it
   // must show for that project's own records and stay off everyone else's.
   // inventory-app#1728: `.links-container`/`.info-eiac` are
   // `RecordSheetView`'s own `.mwnf-sheet-source`/`.mwnf-sheet-notice` now.
@@ -244,7 +244,8 @@ describe('website smoke test', () => {
   // reads the borrowed item's project name off the manifest too.
   it('shows the source project on a collection-results tile, from the manifest', async () => {
     const [items] = await loadEntities(['items'])
-    const item = items.find((i) => i.project_key === 'ISL')
+    const [islProjectId] = Object.entries(manifest.projects).find(([, p]) => p.name.en === 'Discover Islamic Art')
+    const item = items.find((i) => i.project_id === islProjectId)
     const { app, host } = await mountSite(`#/search?q=${encodeURIComponent(item.internal_name)}`)
     await vi.waitFor(() => expect(host.querySelector('.mwnf-grid__tile')).not.toBeNull(), { timeout: 20000 })
     expect(host.textContent).toContain('for project Discover Islamic Art')
