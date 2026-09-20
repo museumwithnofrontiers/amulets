@@ -4,12 +4,13 @@ import { useRouter, RouterLink } from 'vue-router'
 import { useI18n, yearBuckets } from '@museumwnf/viewer-core'
 import { BackLink, FacetSelect, FilterPanel, Pagination } from '@museumwnf/viewer-layout/content'
 import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
-import { labelOf, timelines } from '../composables/useGalleryData.js'
-import { FACET_CATEGORIES, collectionResults, countryIdForCode, useFacetLabels } from '../composables/useCollection.js'
+import {
+  labelOf, timelines, FACET_CATEGORIES, collectionResults, countryIdForCode, useFacetLabels,
+} from '../composables/gallery.js'
 
 // Results plus "filter further by", on the platform's composed results page:
 // the filters in the URL, the dependent options, the date rule, the tiles and
-// the pages are the view's, from the spec in composables/useCollection.js.
+// the pages are the view's, from the spec in composables/gallery.js.
 // What is this gallery's fills the view's slots: the panel composed in the
 // aside where legacy put it — every dropdown rebuilt from the items that
 // survive the current filter set, so picking a country shrinks the type

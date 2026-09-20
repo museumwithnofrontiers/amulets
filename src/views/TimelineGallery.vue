@@ -2,12 +2,12 @@
 import { RouterLink } from 'vue-router'
 import { BackLink, Pagination } from '@museumwnf/viewer-layout/content'
 import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
-import { timelineGallery } from '../composables/useTimeline.js'
+import { timelineGallery } from '../composables/gallery.js'
 
 // The member items whose dates overlap the timeline search's country and
 // period, on the platform's composed results view: the join, the date rule,
 // the tiles and the pages are the view's, from the spec in
-// composables/useTimeline.js. What is this gallery's fills the slots: the
+// composables/gallery.js. What is this gallery's fills the slots: the
 // back link and the "back to events" link above the tiles, and a second
 // pagination beside it.
 </script>

@@ -1,12 +1,12 @@
 <script setup>
 import { I18nText } from '@museumwnf/viewer-core'
 import { TimelineResultsView } from '@museumwnf/viewer-layout/views'
-import { timelineResults } from '../composables/useTimeline.js'
+import { timelineResults } from '../composables/gallery.js'
 
 // The timeline entrance, on the platform's composed timeline view: the
 // country and period controls, the validation and the navigation to the
 // results page are the view's, over the spec in
-// composables/useTimeline.js — the same spec the results page renders,
+// composables/gallery.js — the same spec the results page renders,
 // `entrance: true` here.
 const spec = { ...timelineResults, entrance: true }
 </script>

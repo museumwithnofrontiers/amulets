@@ -10,7 +10,7 @@ import { useI18n, useSection, useSiteConfig } from '@museumwnf/viewer-core'
 import { SiteShell } from '@museumwnf/viewer-layout/components'
 import {
   gallery, chromeImage, itemById, labelOf, tr, defaultLang, manifest,
-} from './composables/useGalleryData.js'
+} from './composables/gallery.js'
 
 // `language`, `languages` and `update:language` are the shell contract of
 // viewer-core: the language the application is in, the languages it offers

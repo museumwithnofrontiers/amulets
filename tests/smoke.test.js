@@ -220,7 +220,7 @@ describe('website smoke test', () => {
   // metanull/carpets#40: `RecordView`'s default `source` slot renders the
   // credit as soon as the website declares `site.origin` (dataset.config.js),
   // independently of the sheet spec's own `citation.permalink: false`
-  // (composables/sheet.js) — that flag only drops the address from the "cite
+  // (composables/gallery.js) — that flag only drops the address from the "cite
   // this page" sentence, which legacy's DXA sheets never printed either.
   it('renders the source credit on the item sheet, addressed to this deployed site', async () => {
     const [items] = await loadEntities(['items'])
@@ -256,7 +256,7 @@ describe('website smoke test', () => {
   // The timeline entrance/results and the gallery run on the platform's
   // composed views (metanull/viewer-layout#37): the country and period
   // controls, the events list and the "See gallery" cross-link come from the
-  // spec in composables/useTimeline.js.
+  // spec in composables/gallery.js.
   it('renders the timeline results on the composed timeline view', async () => {
     const { app, host } = await mountSite('#/timeline-results?country=gr')
     await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-timeline__row').length).toBe(11), { timeout: 20000 })
@@ -309,7 +309,7 @@ describe('website smoke test', () => {
   // The partner pages run on the platform's composed views
   // (metanull/viewer-layout#38, #41): the grouping, the A-Z toggle, the
   // record's language, the map and the member-items grid come from the specs
-  // in composables/partner.js. What only this gallery has — the "no objects"
+  // in composables/gallery.js. What only this gallery has — the "no objects"
   // line for a partner listed under decision MWNF-384 — fills the list's
   // `#row` slot.
   it('renders the partners list on the composed partner-list view', async () => {

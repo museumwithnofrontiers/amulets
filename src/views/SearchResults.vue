@@ -4,8 +4,7 @@ import { RouterLink } from 'vue-router'
 import { useKeywordIndex } from '@museumwnf/viewer-core'
 import { BackLink } from '@museumwnf/viewer-layout/content'
 import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
-import { loadEnglish } from '../composables/useGalleryData.js'
-import { PAGE_SIZE, haystack, tile } from '../composables/useCollection.js'
+import { loadEnglish, PAGE_SIZE, haystack, tile } from '../composables/gallery.js'
 
 // The header search bar's results, on the platform's composed results view.
 // Legacy ran MySQL boolean full-text search server-side; viewer-core runs
