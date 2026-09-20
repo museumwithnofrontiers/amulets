@@ -1,8 +1,14 @@
-import { projectName, useI18n } from '@museumwnf/viewer-core'
+import { projectLabel, useDataPackage, useI18n } from '@museumwnf/viewer-core'
 import {
   countries, countryById, tagById, tags,
   labelOf, itemRoute, tr, defaultLang, mdInline,
 } from './useGalleryData.js'
+
+// `tile()` below is called from a plain spec object (`collectionResults`),
+// not from within a component's own setup, so it reads the data package
+// through the manifest directly (`useDataPackage()` has no `inject()` in it,
+// unlike `useI18n()`) rather than through the `useProjects()` composable.
+const { manifest } = useDataPackage()
 
 // The catalogue spec: what this gallery's lists filter and search on. The
 // engine — query state, options, dates, pages, the boolean grammar — is
@@ -131,11 +137,6 @@ export function haystack(item, text) {
 /**
  * A record as viewer-layout's grid contract: the thumbnail, the name, the
  * lines legacy's hover card carried (date, holder, place, source project).
- *
- * TODO(#1727): still reads `item.project_key` through the deprecated
- * `projectName()` rather than `manifest.projects` — see the TODO in
- * `../views/ItemSheet.vue` for why (amulets items carry no `project_id`,
- * unlike carpets').
  */
 export function tile(item, t) {
   const text = tr('items', item.id, defaultLang)
@@ -148,7 +149,7 @@ export function tile(item, t) {
       text.dates ?? '',
       labelOf('partners', item.partner_id),
       [text.location, labelOf('countries', item.country_id)].filter(Boolean).join(', '),
-      `${t('catalogue.results.forProject')} ${projectName(item.project_key, t)}`,
+      `${t('catalogue.results.forProject')} ${projectLabel(manifest, item.project_id, defaultLang) ?? ''}`,
     ].filter(Boolean),
     to: itemRoute(item),
   }

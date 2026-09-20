@@ -111,6 +111,29 @@ export default {
   // addresses every DXA config repeats, amulets adding none of its own.
   links: { ...mwnfLinks },
 
+  // The source-database chip's colour, per project (epic #1727 phase 4):
+  // one entry for every project id `npm pack @museumwnf/amulets-data` carries
+  // in `manifest.projects` (checked 2026-09-20, amulets-data 1.0.15). The
+  // class names are `@museumwnf/viewer-layout`'s own fixed chip palette
+  // (`.mwnf-chip--<name>`, themed by its `--mwnf-project-<name>` tokens) —
+  // this site just says which project gets which one, by id, instead of
+  // computing it from a legacy project key at runtime. Comments name the
+  // project the way the manifest itself does (`manifest.projects[id].name.en`).
+  projectColors: {
+    '61c122ac-ea86-5462-8bab-6b86138c49b2': 'mwnf-chip--ISLandEPM', // Discover Islamic Art
+    '928f5e0d-53e3-5f53-b9c2-5af389c30dd4': 'mwnf-chip--ISLandEPM', // Explore Islamic Art Collections — shares Discover Islamic Art's colour
+    '0f031e22-6dc6-5ce6-b94b-9bb88345140c': 'mwnf-chip--AWE', // Sharing History - Arab-Ottoman-European relations in the 19th century.
+    'dcf7b4d2-03c8-568a-8209-2817950fe05e': 'mwnf-chip--DCA', // Discover Carpet Art
+    'e08d1c71-8cff-5fe9-b480-2ae6c530b732': 'mwnf-chip--EXH', // The Hijaz Railway — a borrowed thematic exhibition, not a gallery project
+  },
+
+  // The "this item has been added within ..." notice on the item sheet
+  // (legacy's EPM-only note): the project id(s) it applies to, this site's
+  // own editorial choice, not a literal legacy key check. Carpets and
+  // amulets share this list by construction — both borrow from the same
+  // Explore Islamic Art Collections project.
+  noticeProjects: ['928f5e0d-53e3-5f53-b9c2-5af389c30dd4'], // Explore Islamic Art Collections
+
   // The absolute origin this build is deployed at (base path included),
   // read by viewer-core's `sourceUrl()` for the layout's `SourceCredit` (the
   // item sheet, the partner profile) — the item sheet's own citation stays

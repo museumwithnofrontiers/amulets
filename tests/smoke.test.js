@@ -6,6 +6,10 @@ import {
 import { catalogues as sharedTexts } from '@museumwnf/viewer-i18n/gallery'
 import ownTexts from '../locales/en.json'
 import config from '../src/dataset.config.js'
+// The data package's own manifest, read the same way `useDataPackage()`
+// does (the `@inventory-data` alias `defineViewerConfig` sets up) — never a
+// URL literal, so the assertions below track whatever the package ships.
+import manifest from '@inventory-data/manifest.json'
 
 // The same two layers main.js assembles, in the same order: the shared bundle
 // first, this gallery's own file last. Mounting without them would prove
@@ -125,9 +129,93 @@ describe('website smoke test', () => {
     expect(host.querySelector('.mwnf-record')).not.toBeNull()
     expect(host.querySelector('.languages')).not.toBeNull()
     expect(host.querySelector('.related-content-container')).not.toBeNull()
-    expect(host.querySelector('.source-reference').textContent).toContain(items[0].project_key)
+    // metanull/inventory-app#1727 phase 4: the chip and the "Source database"
+    // line both read the item's project name from `manifest.projects` now
+    // (`useProjects().label()`), not the legacy `project_key` badge — items[0]
+    // is amulets' own borrowed "Discover Islamic Art" project (amulets-data
+    // 1.0.15).
+    expect(host.querySelector('.source-reference').textContent).toContain('Discover Islamic Art')
+    // Amulets-data 1.0.15's related-item stubs carry `project_id` even for
+    // items this gallery does not ship (`in_package: false`) — ahead of
+    // carpets' own data package (see the TODO on carpets' ItemSheet.vue) —
+    // so the "outside" reference chip resolves through the manifest too,
+    // rather than printing the raw legacy `project_key`.
+    const outsideChip = host.querySelector('.reference-list .mwnf-chip')
+    expect(outsideChip).not.toBeNull()
+    expect(outsideChip.textContent).toContain('Discover Islamic Art')
+    expect(outsideChip.classList.contains('mwnf-chip--ISLandEPM')).toBe(true)
     app.unmount()
   }, 60000)
+
+  // metanull/inventory-app#1727 phase 4: the source-database chip's colour and
+  // text come from `dataset.config.js`'s `projectColors` map and the manifest
+  // name, keyed by the item's `project_id` — not a `projectFamily(project_key)`
+  // lookup. A Sharing History item exercises a project other than amulets'
+  // dominant Islamic Art ones (items[0] above), proving `projectColors`
+  // differentiates by family, not just by presence.
+  it('colours and names the source-database chip from the manifest projects section', async () => {
+    const { app, host } = await mountSite('#/item/0dda7d39-b57f-5849-bcea-6897a0d0d4be')
+    await vi.waitFor(() => expect(host.querySelector('.source-reference .mwnf-chip')).not.toBeNull(), { timeout: 20000 })
+    const chip = host.querySelector('.source-reference .mwnf-chip')
+    expect(chip.textContent).toContain('Sharing History')
+    expect(chip.classList.contains('mwnf-chip--AWE')).toBe(true)
+    app.unmount()
+  }, 60000)
+
+  // metanull/inventory-app#1727 phase 4: the "added within Explore Islamic Art
+  // Collections" notice is driven by `dataset.config.js`'s `noticeProjects`
+  // list of project ids, not a literal `project_key === 'EPM'` check — it
+  // must show for that project's own records and stay off everyone else's.
+  it('shows the explore-partner notice only for the project dataset.config.js lists', async () => {
+    const epm = await mountSite('#/item/e8cef6f7-62c2-5606-806d-9b7be4aaaae5')
+    await vi.waitFor(() => expect(epm.host.querySelector('.links-container')).not.toBeNull(), { timeout: 20000 })
+    expect(epm.host.querySelector('.info-eiac')).not.toBeNull()
+    epm.app.unmount()
+
+    const isl = await mountSite('#/item/fd051a6c-6d76-5872-b5f1-48712d9ee72b')
+    await vi.waitFor(() => expect(isl.host.querySelector('.links-container')).not.toBeNull(), { timeout: 20000 })
+    expect(isl.host.querySelector('.info-eiac')).toBeNull()
+    isl.app.unmount()
+  }, 60000)
+
+  // metanull/inventory-app#1727 phase 4: the related-database and
+  // artistic-introduction blocks are purely manifest-driven now — the
+  // exporter fills `manifest.projects[*].related_database_url` /
+  // `artistic_introduction_url` at import time, and ItemSheet.vue's
+  // `relatedDatabase`/`artisticIntroduction` render a block iff that
+  // project's URL is non-null. The Sharing History project (this record's
+  // own) carries a related-database URL but no artistic-introduction one in
+  // amulets-data 1.0.15, exercising both branches of the manifest gate in one
+  // record.
+  it('renders the related-database link from the manifest, and gates artistic introduction on it', async () => {
+    const [items] = await loadEntities(['items'])
+    const item = items.find((i) => i.id === '0dda7d39-b57f-5849-bcea-6897a0d0d4be')
+    const project = manifest.projects[item.project_id]
+
+    const { app, host } = await mountSite(`#/item/${item.id}`)
+    await vi.waitFor(() => expect(host.querySelector('.related-content-container')).not.toBeNull(), { timeout: 20000 })
+    const links = () => Array.from(host.querySelectorAll('.related-content-container a'))
+
+    expect(project.related_database_url).toBeTruthy()
+    expect(host.textContent).toContain('Search Related Database')
+    expect(links().some((a) => a.getAttribute('href') === project.related_database_url)).toBe(true)
+
+    expect(project.artistic_introduction_url).toBeFalsy()
+    expect(host.textContent).not.toContain('Artistic Introduction')
+
+    app.unmount()
+  }, 60000)
+
+  // metanull/inventory-app#1727 phase 4: `useCollection.js`'s tile meta line
+  // reads the borrowed item's project name off the manifest too.
+  it('shows the source project on a collection-results tile, from the manifest', async () => {
+    const [items] = await loadEntities(['items'])
+    const item = items.find((i) => i.project_key === 'ISL')
+    const { app, host } = await mountSite(`#/search?q=${encodeURIComponent(item.internal_name)}`)
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-grid__tile')).not.toBeNull(), { timeout: 20000 })
+    expect(host.textContent).toContain('for project Discover Islamic Art')
+    app.unmount()
+  }, 30000)
 
   // metanull/carpets#40: `RecordView`'s default `source` slot renders the
   // credit as soon as the website declares `site.origin` (dataset.config.js),

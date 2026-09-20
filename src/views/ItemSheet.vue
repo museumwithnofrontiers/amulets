@@ -1,20 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-// TODO(#1727): this file still reads every project literal off `record.project_key`
-// (`projectName`/`projectFamily`, `RELATED_DATABASE_PROJECTS`, the `project_key === 'X'`
-// branches below) instead of `manifest.projects` via `useProjects()`, unlike carpets'
-// ItemSheet.vue (carpets/amulets are normally a byte-identical pair). This is not an
-// oversight: `npm pack @museumwnf/amulets-data` (checked 2026-09-19, amulets-data 1.0.13)
-// shows every one of this gallery's 45 items carries `project_key` but NO `project_id`
-// field at all — unlike carpets-data 1.0.9, where every item carries both. Migrating this
-// file the way carpets' was migrated would make every `useProjects()` lookup resolve
-// `null` (no `record.project_id` to look up), silently blanking the source-database line,
-// the chip and its colour, and hiding the related-database/artistic-introduction/EIAC-notice
-// blocks for every item — a real regression on data that works fine today. Platform gap:
-// the amulets exporter needs to emit `project_id` on items, matching carpets' exporter,
-// before this file can migrate. Left untouched pending that fix.
-import { projectFamily, projectName, useI18n, useSiteConfig } from '@museumwnf/viewer-core'
+// Every project literal in this file now reads `manifest.projects` through
+// `useProjects()` — amulets-data 1.0.15 carries `project_id` on every item
+// and on every related-item stub, in_package or not, so no project literal
+// needs to fall back to the deprecated legacy-key helpers.
+import { useI18n, useProjects, useSiteConfig } from '@museumwnf/viewer-core'
 import { BackLink, DynastyList, GlossaryTool, RecordLanguages, RelatedRecords, SheetSection } from '@museumwnf/viewer-layout/content'
 import { RecordView } from '@museumwnf/viewer-layout/views'
 import {
@@ -38,19 +29,25 @@ import { itemSheet } from '../composables/sheet.js'
 const props = defineProps({ id: { type: String, required: true } })
 
 const { t } = useI18n()
-const { links } = useSiteConfig()
+const { links, projectColors, noticeProjects } = useSiteConfig()
+const { label: projectLabel, links: projectLinks } = useProjects()
 
 const item = computed(() => itemById.value.get(props.id) ?? null)
 const era = (year) => eraLabel(year, t)
 
-const sourceProject = (record) => projectName(record.project_key, t)
+const sourceProject = (record) => projectLabel(record.project_id)
 
-// The projects legacy offers a "search the related database" link for. DCA is
-// deliberately not among them: legacy has no public DCA database search to
-// point at, so a DCA-sourced member gets no such link at all.
-const RELATED_DATABASE_PROJECTS = new Set(['ISL', 'EPM', 'DBA', 'BAR', 'AWE', 'awe'])
-const hasRelatedDatabase = (record) => RELATED_DATABASE_PROJECTS.has(record.project_key)
-const showEiacNotice = (record) => record.project_key === 'EPM'
+// The related-database link is now purely data-driven: a project with no
+// `related_database_url` in the manifest (DCA, "Discover Carpet Art", and
+// "The Hijaz Railway" among them — legacy never had a public database search
+// to point at for either) simply renders no link, with no fixed list of
+// project ids to maintain here.
+const relatedDatabase = (record) => projectLinks(record.project_id)?.relatedDatabaseUrl ?? null
+const artisticIntroduction = (record) => projectLinks(record.project_id)?.artisticIntroductionUrl ?? null
+// `noticeProjects` (dataset.config.js) is this site's own editorial list of
+// project ids the "added within ..." notice applies to — legacy's EPM notice,
+// generalised to whatever project id a site chooses, not a literal key.
+const showEiacNotice = (record) => noticeProjects.includes(record.project_id)
 
 // ── Related content ───────────────────────────────────────────────────────
 //
@@ -121,9 +118,12 @@ function printSheet() {
         <!-- Decision Q3: legacy's `remote-object` URL came from a
              hand-maintained table with no counterpart in the new model, so
              the source is named, not linked. -->
+        <!-- The chip used to carry the short legacy project key (e.g. "ISL");
+             the manifest only carries the project's full name, so the chip
+             and the label now share that one name instead of a short form. -->
         <p class="source-reference">
-          <span class="mwnf-chip" :class="`mwnf-chip--${projectFamily(record.project_key)}`">{{ record.project_key }}</span>
-          {{ t('record.sheet.sourceDatabase') }}: {{ sourceProject(record) }}
+          {{ t('record.sheet.sourceDatabase') }}:
+          <span class="mwnf-chip" :class="projectColors[record.project_id]">{{ sourceProject(record) }}</span>
         </p>
         <p class="source-uid"><code>{{ record.backward_compatibility }}</code></p>
         <p class="add-collection-link">
@@ -148,17 +148,25 @@ function printSheet() {
           <!-- Related items this gallery does not ship: the reference it is, awaiting a resolver. -->
           <ul v-if="outside.length" class="reference-list">
             <li v-for="r in outside" :key="r.id">
-              <span class="mwnf-chip" :class="`mwnf-chip--${projectFamily(r.project_key)}`">{{ r.project_key }}</span>
+              <!-- Unlike carpets-data, amulets-data 1.0.15's `related_items` stubs
+                   carry `project_id` on every entry, in_package or not (confirmed
+                   via `npm pack @museumwnf/amulets-data`), so this chip resolves
+                   through the manifest too, ahead of the carpets port it was cloned
+                   from — see the TODO on carpets' own `ItemSheet.vue` for the gap
+                   that still applies there. -->
+              <span class="mwnf-chip" :class="projectColors[r.project_id]">{{ sourceProject(r) }}</span>
               <code>{{ r.backward_compatibility }}</code>
               <span class="unresolved-note">{{ $t('gallery.results.notInThisGallery') }}</span>
             </li>
           </ul>
         </RelatedRecords>
 
-        <!-- Artistic Introduction — an Islamic Art site feature legacy linked from ISL/EPM sheets. -->
-        <div v-if="record.project_key === 'ISL' || record.project_key === 'EPM'">
+        <!-- Artistic Introduction — an Islamic Art site feature legacy linked
+             from ISL/EPM sheets; now gated purely on the manifest carrying a
+             URL for this record's project, not on which project it is. -->
+        <div v-if="artisticIntroduction(record)">
           <p class="related-line">
-            <a :href="`${links.islamicArt}/gai/ISL/`" target="_blank" rel="noopener">↗ {{ t('gallery.nav.artisticIntroduction') }}</a>
+            <a :href="artisticIntroduction(record)" target="_blank" rel="noopener">↗ {{ t('gallery.nav.artisticIntroduction') }}</a>
           </p>
         </div>
 
@@ -228,17 +236,13 @@ function printSheet() {
           </div>
         </div>
 
-        <!-- Search related database: the gate is on the block, as legacy's was. -->
-        <div v-if="hasRelatedDatabase(record)">
+        <!-- Search related database: the gate is on the block, as legacy's
+             was, but the block itself is now one manifest-driven link
+             instead of three branches picking a sibling site by legacy key. -->
+        <div v-if="relatedDatabase(record)">
           <p class="related-header">{{ t('gallery.search.relatedDatabase') }}</p>
-          <p class="related-line" v-if="record.project_key === 'ISL' || record.project_key === 'EPM'">
-            <a :href="`${links.islamicArt}/database.php`" target="_blank" rel="noopener">↗ {{ $t('core.project.islamicArt') }}</a>
-          </p>
-          <p class="related-line" v-if="record.project_key === 'DBA' || record.project_key === 'BAR'">
-            <a :href="`${links.baroqueArt}/database.php`" target="_blank" rel="noopener">↗ {{ $t('core.project.baroqueArt') }}</a>
-          </p>
-          <p class="related-line" v-if="record.project_key === 'AWE' || record.project_key === 'awe'">
-            <a :href="`${links.sharingHistory}/database.php`" target="_blank" rel="noopener">↗ {{ $t('core.project.sharingHistory') }}</a>
+          <p class="related-line">
+            <a :href="relatedDatabase(record)" target="_blank" rel="noopener">↗ {{ sourceProject(record) }}</a>
           </p>
         </div>
 
