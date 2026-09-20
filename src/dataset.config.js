@@ -1,6 +1,6 @@
 import { languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage } from '@museumwnf/viewer-core'
 import SiteShell from './SiteShell.vue'
-import { itemFromUidPath, partnerFromKey } from './composables/useGalleryData.js'
+import { itemFromUidPath, partnerFromKey } from './composables/gallery.js'
 
 // The whole declaration of this website. Before it mounts, the website reads
 // nothing from its package but the manifest: the languages it offers, their
@@ -137,7 +137,7 @@ export default {
   // The absolute origin this build is deployed at (base path included),
   // read by viewer-core's `sourceUrl()` for the layout's `SourceCredit` (the
   // item sheet, the partner profile) — the item sheet's own citation stays
-  // without a permalink (composables/sheet.js's `citation.permalink: false`,
+  // without a permalink (composables/gallery.js's `citation.permalink: false`,
   // legacy's DXA sheets never carried one). The GitHub Pages address until
   // the domain is decided — the same host and base path vite.config.js's
   // `base` serves the build under — so it changes together with the domain.

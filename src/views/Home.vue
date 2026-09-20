@@ -5,7 +5,7 @@ import { FeaturedPartners, SiblingGalleries } from '@museumwnf/viewer-layout/con
 import {
   partners, partnerRoute, labelOf, tr, defaultLang, mdStrip,
   pickSiblings, siblingUrl, chromeImage,
-} from '../composables/useGalleryData.js'
+} from '../composables/gallery.js'
 
 // The banner is rendered by SiteShell, in PageShell's banner section (legacy
 // put it in a named router-view of its own, above the nav). What is left is
@@ -19,7 +19,7 @@ import {
 //   replay it — decision already recorded where the local component used
 //   to live), truncated to a carousel-sized blurb;
 // - which siblings this gallery's roster carries and whether each one
-//   resolved to an address (decision Q3, `useGalleryData.js`: reference
+//   resolved to an address (decision Q3, composables/gallery.js: reference
 //   objects, not resolved links — an unresolved one still renders, just not
 //   as a link).
 //

@@ -2,7 +2,7 @@
 import { TextPageView } from '@museumwnf/viewer-layout/views'
 
 // Editorial page, shared by every gallery. The whole essay is about MySQL
-// boolean full-text operators, which is why useCollection.js implements that
+// boolean full-text operators, which is why composables/gallery.js implements that
 // grammar rather than a plain substring match. `back` points at the
 // collection entrance, the only page that links here (its own how-to link,
 // over the same route name) — the view's `back` is a fixed destination, not

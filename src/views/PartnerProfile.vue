@@ -4,12 +4,11 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from '@museumwnf/viewer-core'
 import { RecordLanguages, MediaGallery, PartnerMap, BackLink } from '@museumwnf/viewer-layout/content'
 import { RecordView } from '@museumwnf/viewer-layout/views'
-import { partnerObjectsRoute, labelOf, md } from '../composables/useGalleryData.js'
-import { partnerSheet } from '../composables/partner.js'
+import { partnerObjectsRoute, labelOf, md, partnerSheet } from '../composables/gallery.js'
 
 // The partner profile, on the platform's composed record view: the
 // language, the loads, the glossary and the "not found" fallback are the
-// view's, from the spec in composables/partner.js. Legacy's own tab strip
+// view's, from the spec in composables/gallery.js. Legacy's own tab strip
 // (About/Contact/Logo/homepage) is not a sheet of labelled fields, so it
 // fills the `header` slot in place of the default title, and its panels
 // fill `before-sheet`; the photo carousel and its lightbox are the layout's
@@ -26,7 +25,7 @@ const props = defineProps({ id: { type: String, required: true } })
 // Also handed down through the `header` slot, on every composed record view
 // — bound here too so `npx viewer-i18n-check` can tell a bare `t(...)` in the
 // template is the text lookup and not some other function of the same name,
-// exactly as composables/sheet.js's own RecordView page already does.
+// exactly as the item sheet's own RecordView page already does.
 const { t } = useI18n()
 
 const tab = ref('description')

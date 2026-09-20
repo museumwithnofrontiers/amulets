@@ -3,15 +3,15 @@ import { RouterLink } from 'vue-router'
 import { I18nText } from '@museumwnf/viewer-core'
 import { BackLink } from '@museumwnf/viewer-layout/content'
 import { PartnerListView } from '@museumwnf/viewer-layout/views'
-import { partnerObjectsRoute, labelOf } from '../composables/useGalleryData.js'
-import { partnerList } from '../composables/partner.js'
+import { partnerObjectsRoute, labelOf, partnerList } from '../composables/gallery.js'
 
 // The partners list, grouped by country with an A–Z / Z–A toggle, on the
 // platform's composed partner-list view: the grouping, the sort toggle and
-// the query are the view's, from the spec in composables/partner.js. What
+// the query are the view's, from the spec in composables/gallery.js. What
 // is this gallery's fills the one slot the default row cannot: legacy's
 // "Read more"/"View objects" pair and the "no objects" line a partner
-// holding none still gets (decision MWNF-384, recorded in partner.js).
+// holding none still gets (decision MWNF-384, recorded in
+// @museumwnf/viewer-core/dxa's `useGalleryPartner`).
 </script>
 
 <template>

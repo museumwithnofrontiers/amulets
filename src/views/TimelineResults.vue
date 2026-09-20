@@ -1,13 +1,13 @@
 <script setup>
 import { BackLink } from '@museumwnf/viewer-layout/content'
 import { TimelineResultsView } from '@museumwnf/viewer-layout/views'
-import { timelineResults } from '../composables/useTimeline.js'
+import { timelineResults } from '../composables/gallery.js'
 
 // Timeline results, on the platform's composed timeline view: the filters in
 // the URL, the country and period controls, the events list, its pagination
 // and the "See gallery" cross-link — shown whenever the chosen country and
 // period contain member items — are the view's, from the spec in
-// composables/useTimeline.js. What is this gallery's fills the one slot
+// composables/gallery.js. What is this gallery's fills the one slot
 // this page needs: the back link.
 </script>
 

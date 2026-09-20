@@ -4,12 +4,11 @@ import { useRoute, RouterLink } from 'vue-router'
 import { Pagination } from '@museumwnf/viewer-layout/content'
 import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
 import { BackLink } from '@museumwnf/viewer-layout/content'
-import { partnerById, partnerRoute, labelOf, tr, defaultLang } from '../composables/useGalleryData.js'
-import { partnerObjects } from '../composables/partner.js'
+import { partnerById, partnerRoute, labelOf, tr, defaultLang, partnerObjects } from '../composables/gallery.js'
 
 // The member items one partner holds, on the platform's composed results
 // view: the join, the sort and the pages are the view's, from the base spec
-// in composables/partner.js, `scope` added here over the route's own id —
+// in composables/gallery.js, `scope` added here over the route's own id —
 // `CatalogueResultsView` takes no record id of its own, unlike `RecordView`.
 const route = useRoute()
 const partner = computed(() => partnerById.value.get(route.params.id) ?? null)
