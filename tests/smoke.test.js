@@ -398,6 +398,37 @@ describe('website smoke test', () => {
     })).toEqual([])
   })
 
+  // inventory-app#1731: `standardRoutes('gallery', config)` now provides 11
+  // of these 14 entries (every one but home/item/timeline). Every existing
+  // deep link and `legacyRoutes` resolver targets these name/path pairs, so
+  // they must not move — this pins the exact set `config.extraViews`
+  // declares (the router's own generated `legacy-*`/`not-found` entries are
+  // not this website's own routes, so they are not part of the pin),
+  // snapshotted from `dataset.config.js` on `origin/main` before this
+  // story's route factory adoption.
+  it('pins every route name to the same path as before standardRoutes was adopted', () => {
+    const routes = config.extraViews
+      .map((r) => ({ name: r.name, path: r.path }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+
+    expect(routes).toEqual([
+      { name: 'about', path: '/about' },
+      { name: 'collection', path: '/collection' },
+      { name: 'collection-results', path: '/collection-results' },
+      { name: 'credits', path: '/credits' },
+      { name: 'home', path: '/' },
+      { name: 'item', path: '/item/:id' },
+      { name: 'partner', path: '/partner/:id' },
+      { name: 'partner-objects', path: '/partner/:id/objects' },
+      { name: 'partners', path: '/partners' },
+      { name: 'search-how-to', path: '/how-to-search' },
+      { name: 'search-results', path: '/search' },
+      { name: 'timeline', path: '/timeline' },
+      { name: 'timeline-gallery', path: '/timeline/gallery' },
+      { name: 'timeline-results', path: '/timeline-results' },
+    ])
+  })
+
   // Every route needs a section for the menu to know where it is (the shell's
   // `useSection()`), which the config-driven `SiteShell` also relies on for
   // the active menu entry and the banner-title fallback.

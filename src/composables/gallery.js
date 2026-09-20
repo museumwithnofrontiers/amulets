@@ -1,6 +1,6 @@
 import { eraLabel, roundOutward, useSiteConfig } from '@museumwnf/viewer-core'
 import {
-  useGalleryData, useGalleryCollection, useGalleryTimeline, useGalleryPartner, useGallerySheet,
+  useGalleryData, useGalleryCollection, useGalleryTimeline, useGallerySheet,
 } from '@museumwnf/viewer-core/dxa'
 
 // This gallery's own instance of the shared DXA gallery data layer (epic
@@ -19,38 +19,40 @@ import {
 export const data = useGalleryData()
 export const collection = useGalleryCollection(data)
 export const timeline = useGalleryTimeline(data, collection)
-export const partner = useGalleryPartner(data, collection)
 export const sheet = useGallerySheet(data)
 
 // ── The data layer ──────────────────────────────────────────────────────
 //
-// Everything a page used to import from the local `useGalleryData.js`,
-// still by the same names. `data.timelineEvents` (the raw `timeline_events`
-// entity) is not re-exported here: nothing on this site reads it directly,
-// only the merged spec `timeline.js` builds from it, exported below under
-// the same name `useTimeline.js` used to export it under.
+// What the remaining pages (Home, ItemSheet, Timeline) and this module's own
+// item-sheet building below still read, still by the same names as the local
+// `useGalleryData.js` this replaced. Epic inventory-app#1731 promoted every
+// other page (About/Credits/SearchHowTo/Partners/PartnerProfile/
+// SearchResults/TimelineResults/TimelineGallery/CollectionResults/
+// CollectionSearch/PartnerObjects) to `@museumwnf/viewer-layout/dxa`'s
+// shared gallery pages, so the bindings only they read (`md`, `loadEnglish`,
+// `items`, `timelines`, `partnerObjectsRoute`, and the catalogue/timeline/
+// partner spec bindings below) are pruned — a `git grep` of each found no
+// remaining reader. `data.timelineEvents` (the raw `timeline_events` entity)
+// is not re-exported here: nothing on this site reads it directly, only the
+// merged spec `timeline.js` builds from it, exported below under the same
+// name `useTimeline.js` used to export it under.
 export const {
   manifest, defaultLang,
-  tr, md, mdInline, mdStrip, loadEnglish, labelOf,
+  tr, mdInline, mdStrip, labelOf,
   availableLanguages, loadTranslations, translations,
-  gallery, items, tags, partners, countries, languages, dynasties, glossary, timelines,
+  gallery, tags, partners, countries, languages, dynasties, glossary,
   itemById, partnerById, countryById, tagById, dynastyById, timelineById, languageByCode,
-  itemRoute, partnerRoute, partnerObjectsRoute, itemFromUidPath, partnerFromKey,
+  itemRoute, partnerRoute, itemFromUidPath, partnerFromKey,
   chromeImage, siblingGalleries, siblingUrl, pickSiblings,
 } = data
 
 // ── The catalogue spec ──────────────────────────────────────────────────
+//
+// Only the item sheet's related-block helpers below still read from this;
+// every promoted page's own catalogue bindings (`FACETS`, `haystack`,
+// `tile`, `collectionResults`, `countryIdForCode`) went with it.
 
-export const {
-  FACETS, hasEveryTag, haystack, tile, collectionResults,
-  countryIdForCode, tagIdForLegacy, tagLabelForLegacy,
-} = collection
-
-// The five THG facets and the page size are shared verbatim by both DXA
-// families; `eraLabel`/`roundOutward` are viewer-core's own date helpers,
-// not this gallery's, so pages read them straight from
-// `@museumwnf/viewer-core` rather than through this module.
-export { PAGE_SIZE, DATE_MODE, FACET_CATEGORIES, FACET_LABEL_KEYS, useFacetLabels } from '@museumwnf/viewer-core/dxa'
+export const { hasEveryTag, tagIdForLegacy, tagLabelForLegacy } = collection
 
 // ── The timeline spec ───────────────────────────────────────────────────
 //
@@ -60,14 +62,11 @@ export { PAGE_SIZE, DATE_MODE, FACET_CATEGORIES, FACET_LABEL_KEYS, useFacetLabel
 // former files, no collision there because they were separate modules.
 // Renamed here, since both are now destructured into the same module scope;
 // only the item sheet reads this one, aliasing it back on import.
+// `timelineGallery` went with the promoted `TimelineGallery.vue`.
 export const {
-  countryLabel, timelineEvents, timelineGalleryItems, timelineResults, timelineGallery,
+  countryLabel, timelineEvents, timelineGalleryItems, timelineResults,
   countryIdForCode: timelineCountryIdForCode,
 } = timeline
-
-// ── The partner specs ───────────────────────────────────────────────────
-
-export const { partnerList, partnerSheet, partnerObjects } = partner
 
 // ── The item sheet spec ─────────────────────────────────────────────────
 //
