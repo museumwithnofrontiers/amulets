@@ -141,36 +141,19 @@ describe('website smoke test', () => {
     // `.mwnf-sheet-source` block now, built from composables/gallery.js's
     // `itemSheet.sourceDatabase` spec key rather than local markup.
     expect(host.querySelector('.mwnf-sheet-source').textContent).toContain('Discover Islamic Art')
-    // Amulets-data 1.0.15's related-item stubs carry `project_id` even for
-    // items this gallery does not ship (`in_package: false`), so the
-    // "outside" reference chip's colour still resolves through the manifest
-    // (composables/gallery.js's `itemSheet.related.outsideChip`). The chip's
-    // own TEXT, and whether the reference's `backward_compatibility` code
-    // renders at all, are platform concerns in flux: amulets' own CI still
-    // runs against the published viewer-layout 2.14.0, which always prints
-    // the reference's raw legacy project code on the chip and the code in
-    // its own `<code>` element, while viewer-layout PR #91
-    // (inventory-app#1827) resolves the chip's name through
-    // `useProjects().label(ref.project_id)` instead and — since every
-    // amulets-data 1.0.15 stub now resolves a project_id — drops the `<code>`
-    // element entirely in that case. That PR's downstream CI job runs
-    // against this repo's HEAD, so assert only what both versions agree on:
-    // the row renders, its "not in this gallery" label (read from the
-    // fixture, never hardcoded), a chip element is present, and the
-    // `backward_compatibility` code when the markup actually renders one
-    // (inventory-app#1841).
+    // inventory-app#1827: the outside-reference chip is named from the
+    // manifest by `project_id` (composables/gallery.js's
+    // `itemSheet.related.outsideChip`, viewer-layout's
+    // `useProjects().label(ref.project_id)`) — the legacy
+    // `backward_compatibility` code is no longer rendered.
     const outsideReference = items[0].related_items.find((ref) => ref.in_package === false)
     const outsideRow = host.querySelector('.mwnf-sheet-related__references li')
     expect(outsideRow).not.toBeNull()
     expect(outsideRow.textContent).toContain(sharedTexts.en['gallery.results.notInThisGallery'])
     expect(outsideRow.querySelector('.mwnf-chip')).not.toBeNull()
-    const outsideCode = outsideRow.querySelector('code')
-    if (outsideCode) expect(outsideCode.textContent).toBe(outsideReference.backward_compatibility)
-    // TODO(#1827): once viewer-layout 2.15.0 propagates, the `<code>` element
-    // above is gone for good — replace the conditional with a direct assert
-    // of the manifest project name instead:
-    // manifest.projects[outsideReference.project_id].name.en is
-    // "Discover Islamic Art".
+    const outsideChipText = outsideRow.textContent.replace(sharedTexts.en['gallery.results.notInThisGallery'], '').trim()
+    expect(outsideChipText).toBe(manifest.projects[outsideReference.project_id].name.en)
+    expect(outsideRow.querySelector('code')).toBeNull()
     app.unmount()
   }, 60000)
 
