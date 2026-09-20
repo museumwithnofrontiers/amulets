@@ -144,16 +144,26 @@ describe('website smoke test', () => {
     // Amulets-data 1.0.15's related-item stubs carry `project_id` even for
     // items this gallery does not ship (`in_package: false`), so the
     // "outside" reference chip's colour still resolves through the manifest
-    // (composables/gallery.js's `itemSheet.related.outsideChip`). Platform
-    // gap: `RecordSheetView`'s own related-block markup (viewer-layout
-    // 2.14.0) prints the reference's raw legacy `project_key` as the chip's
-    // text — unlike `.mwnf-sheet-source__line` above, `outsideChip` only
-    // drives the chip's class, not a label override — so this now asserts
-    // the legacy code, not the manifest name the local markup used to show.
-    const outsideChip = host.querySelector('.mwnf-sheet-related__references .mwnf-chip')
-    expect(outsideChip).not.toBeNull()
-    expect(outsideChip.textContent).toContain('ISL')
-    expect(outsideChip.classList.contains('mwnf-chip--ISLandEPM')).toBe(true)
+    // (composables/gallery.js's `itemSheet.related.outsideChip`). The chip's
+    // own TEXT is a platform concern in flux: amulets' own CI still runs
+    // against the published viewer-layout 2.14.0, which prints the
+    // reference's raw legacy `project_key` there, while viewer-layout PR #91
+    // (inventory-app#1827) has `RecordSheetView` print the manifest project
+    // name through `useProjects().label(ref.project_id)` instead — and that
+    // PR's downstream CI job runs against this repo's HEAD. So this only
+    // asserts what both versions agree on: the row renders, its "not in this
+    // gallery" label (read from the fixture, never hardcoded), its
+    // `backward_compatibility` code, and that a chip element is present —
+    // never the chip's text (inventory-app#1841).
+    const outsideReference = items[0].related_items.find((ref) => ref.in_package === false)
+    const outsideRow = host.querySelector('.mwnf-sheet-related__references li')
+    expect(outsideRow).not.toBeNull()
+    expect(outsideRow.textContent).toContain(sharedTexts.en['gallery.results.notInThisGallery'])
+    expect(outsideRow.querySelector('code').textContent).toBe(outsideReference.backward_compatibility)
+    expect(outsideRow.querySelector('.mwnf-chip')).not.toBeNull()
+    // TODO(#1827): assert the manifest project name once viewer-layout 2.15.0
+    // propagates — manifest.projects[outsideReference.project_id].name.en is
+    // "Discover Islamic Art".
     app.unmount()
   }, 60000)
 
