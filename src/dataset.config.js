@@ -1,4 +1,5 @@
 import { languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage } from '@museumwnf/viewer-core'
+import { standardRoutes } from '@museumwnf/viewer-layout/dxa'
 import SiteShell from './SiteShell.vue'
 import { itemFromUidPath, partnerFromKey } from './composables/gallery.js'
 
@@ -149,13 +150,6 @@ export default {
   // viewer-core's generic home route.
   extraViews: [
     { path: '/', name: 'home', component: () => import('./views/Home.vue'), meta: meta('home') },
-    { path: '/collection', name: 'collection', component: () => import('./views/CollectionSearch.vue'), meta: meta('collection', 'tags') },
-    {
-      path: '/collection-results',
-      name: 'collection-results',
-      component: () => import('./views/CollectionResults.vue'),
-      meta: meta('collection', 'tags', 'timelines'),
-    },
     {
       path: '/item/:id',
       name: 'item',
@@ -163,32 +157,13 @@ export default {
       props: (route) => ({ id: route.params.id }),
       meta: meta('database', 'languages', 'dynasties', 'glossary', 'timelines', 'timeline_events'),
     },
-    { path: '/search', name: 'search-results', component: () => import('./views/SearchResults.vue'), meta: meta('database') },
-    { path: '/how-to-search', name: 'search-how-to', component: () => import('./views/SearchHowTo.vue'), meta: meta('database') },
-    { path: '/partners', name: 'partners', component: () => import('./views/Partners.vue'), meta: meta('partners') },
-    {
-      path: '/partner/:id',
-      name: 'partner',
-      component: () => import('./views/PartnerProfile.vue'),
-      props: (route) => ({ id: route.params.id }),
-      meta: meta('partners', 'languages'),
-    },
-    { path: '/partner/:id/objects', name: 'partner-objects', component: () => import('./views/PartnerObjects.vue'), meta: meta('partners') },
     { path: '/timeline', name: 'timeline', component: () => import('./views/Timeline.vue'), meta: meta('timeline', 'timelines', 'timeline_events') },
-    {
-      path: '/timeline-results',
-      name: 'timeline-results',
-      component: () => import('./views/TimelineResults.vue'),
-      meta: meta('timeline', 'timelines', 'timeline_events'),
-    },
-    {
-      path: '/timeline/gallery',
-      name: 'timeline-gallery',
-      component: () => import('./views/TimelineGallery.vue'),
-      meta: meta('timeline', 'timelines', 'timeline_events'),
-    },
-    { path: '/about', name: 'about', component: () => import('./views/About.vue'), meta: meta('about') },
-    { path: '/credits', name: 'credits', component: () => import('./views/Credits.vue'), meta: meta('credits') },
+    // Every other page (about/credits/partners/search/collection/timeline
+    // results/gallery) is byte-identical to carpets' own on `origin/main`
+    // (epic inventory-app#1731) — the package's shared gallery pages, spread
+    // in with this site's one genuine per-site string (`Credits.vue`'s
+    // `body` entry name).
+    ...standardRoutes('gallery', { creditsBody: 'amulets.credits.body' }),
   ],
 
   // The legacy URL shapes, redirect-only, so a legacy address pasted after

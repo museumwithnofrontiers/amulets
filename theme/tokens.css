@@ -190,4 +190,25 @@
   --mwnf-button-text: #ffffff;
   --mwnf-button-hover-background: #8e2e15;
   --mwnf-loader-text: #8e2e15;
+
+  /* ---------- Hyperlinks: the shared library default this site's own
+     --link-blue always matched, declared explicitly now that it themes
+     library pages this site does not own the markup of ---------- */
+  --mwnf-link-text: #0000ff;
+
+  /* ---------- Content: PartnerListView ---------- */
+  /* The country-group heading, as the promoted `GalleryPartners`'s own
+     deleted `:deep(.mwnf-partner-list__group-title)` override drew it. */
+  --mwnf-partner-list-group-title-color: #8e2e15;
+  --mwnf-partner-list-group-border: 2px solid #d46e59;
+
+  /* ---------- DXA family pages (@museumwnf/viewer-layout/dxa) ---------- */
+  /* The partner profile's tab strip/heading colour and the ivory bands
+     (language switcher, tab-strip surround, "Timeline for this Search" box)
+     the promoted pages' own deleted `:deep()` overrides drew in
+     `--theme-dark`/`--background-color` — this site's own tokens for them,
+     since `src/dxa.css`'s neutral defaults (`#1c1c1c`/`#f0f0f0`) are a
+     different site's colours. */
+  --mwnf-dxa-heading-color: #8e2e15;
+  --mwnf-dxa-band-background: #ffe7e0;
 }
