@@ -128,21 +128,31 @@ describe('website smoke test', () => {
     await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet__label')).not.toBeNull(), { timeout: 20000 })
     expect(host.querySelector('.mwnf-record')).not.toBeNull()
     expect(host.querySelector('.languages')).not.toBeNull()
-    expect(host.querySelector('.related-content-container')).not.toBeNull()
+    // inventory-app#1728: `.related-content-container` is `RecordSheetView`'s
+    // own `.mwnf-sheet-related` block now, built from composables/gallery.js's
+    // `itemSheet.related` spec keys rather than local markup.
+    expect(host.querySelector('.mwnf-sheet-related')).not.toBeNull()
     // metanull/inventory-app#1727 phase 4: the chip and the "Source database"
     // line both read the item's project name from `manifest.projects` now
     // (`useProjects().label()`), not the legacy `project_key` badge — items[0]
     // is amulets' own borrowed "Discover Islamic Art" project (amulets-data
     // 1.0.15).
-    expect(host.querySelector('.source-reference').textContent).toContain('Discover Islamic Art')
+    // inventory-app#1728: `.source-reference` is `RecordSheetView`'s own
+    // `.mwnf-sheet-source` block now, built from composables/gallery.js's
+    // `itemSheet.sourceDatabase` spec key rather than local markup.
+    expect(host.querySelector('.mwnf-sheet-source').textContent).toContain('Discover Islamic Art')
     // Amulets-data 1.0.15's related-item stubs carry `project_id` even for
-    // items this gallery does not ship (`in_package: false`) — ahead of
-    // carpets' own data package (see the TODO on carpets' ItemSheet.vue) —
-    // so the "outside" reference chip resolves through the manifest too,
-    // rather than printing the raw legacy `project_key`.
-    const outsideChip = host.querySelector('.reference-list .mwnf-chip')
+    // items this gallery does not ship (`in_package: false`), so the
+    // "outside" reference chip's colour still resolves through the manifest
+    // (composables/gallery.js's `itemSheet.related.outsideChip`). Platform
+    // gap: `RecordSheetView`'s own related-block markup (viewer-layout
+    // 2.14.0) prints the reference's raw legacy `project_key` as the chip's
+    // text — unlike `.mwnf-sheet-source__line` above, `outsideChip` only
+    // drives the chip's class, not a label override — so this now asserts
+    // the legacy code, not the manifest name the local markup used to show.
+    const outsideChip = host.querySelector('.mwnf-sheet-related__references .mwnf-chip')
     expect(outsideChip).not.toBeNull()
-    expect(outsideChip.textContent).toContain('Discover Islamic Art')
+    expect(outsideChip.textContent).toContain('ISL')
     expect(outsideChip.classList.contains('mwnf-chip--ISLandEPM')).toBe(true)
     app.unmount()
   }, 60000)
@@ -155,10 +165,14 @@ describe('website smoke test', () => {
   // differentiates by family, not just by presence.
   it('colours and names the source-database chip from the manifest projects section', async () => {
     const { app, host } = await mountSite('#/item/0dda7d39-b57f-5849-bcea-6897a0d0d4be')
-    await vi.waitFor(() => expect(host.querySelector('.source-reference .mwnf-chip')).not.toBeNull(), { timeout: 20000 })
-    const chip = host.querySelector('.source-reference .mwnf-chip')
-    expect(chip.textContent).toContain('Sharing History')
-    expect(chip.classList.contains('mwnf-chip--AWE')).toBe(true)
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet-source .mwnf-chip')).not.toBeNull(), { timeout: 20000 })
+    // inventory-app#1728: `RecordSheetView`'s own `.mwnf-sheet-source__line`
+    // renders the chip as a decorative, `aria-hidden` colour dot beside the
+    // text — the project name is the line's own text now, not the chip
+    // span's, unlike the local markup this replaces.
+    const line = host.querySelector('.mwnf-sheet-source__line')
+    expect(line.textContent).toContain('Sharing History')
+    expect(line.querySelector('.mwnf-chip').classList.contains('mwnf-chip--AWE')).toBe(true)
     app.unmount()
   }, 60000)
 
@@ -166,35 +180,38 @@ describe('website smoke test', () => {
   // Collections" notice is driven by `dataset.config.js`'s `noticeProjects`
   // list of project ids, not a literal `project_key === 'EPM'` check — it
   // must show for that project's own records and stay off everyone else's.
+  // inventory-app#1728: `.links-container`/`.info-eiac` are
+  // `RecordSheetView`'s own `.mwnf-sheet-source`/`.mwnf-sheet-notice` now.
   it('shows the explore-partner notice only for the project dataset.config.js lists', async () => {
     const epm = await mountSite('#/item/e8cef6f7-62c2-5606-806d-9b7be4aaaae5')
-    await vi.waitFor(() => expect(epm.host.querySelector('.links-container')).not.toBeNull(), { timeout: 20000 })
-    expect(epm.host.querySelector('.info-eiac')).not.toBeNull()
+    await vi.waitFor(() => expect(epm.host.querySelector('.mwnf-sheet-source')).not.toBeNull(), { timeout: 20000 })
+    expect(epm.host.querySelector('.mwnf-sheet-notice')).not.toBeNull()
     epm.app.unmount()
 
     const isl = await mountSite('#/item/fd051a6c-6d76-5872-b5f1-48712d9ee72b')
-    await vi.waitFor(() => expect(isl.host.querySelector('.links-container')).not.toBeNull(), { timeout: 20000 })
-    expect(isl.host.querySelector('.info-eiac')).toBeNull()
+    await vi.waitFor(() => expect(isl.host.querySelector('.mwnf-sheet-source')).not.toBeNull(), { timeout: 20000 })
+    expect(isl.host.querySelector('.mwnf-sheet-notice')).toBeNull()
     isl.app.unmount()
   }, 60000)
 
   // metanull/inventory-app#1727 phase 4: the related-database and
   // artistic-introduction blocks are purely manifest-driven now — the
   // exporter fills `manifest.projects[*].related_database_url` /
-  // `artistic_introduction_url` at import time, and ItemSheet.vue's
-  // `relatedDatabase`/`artisticIntroduction` render a block iff that
-  // project's URL is non-null. The Sharing History project (this record's
-  // own) carries a related-database URL but no artistic-introduction one in
-  // amulets-data 1.0.15, exercising both branches of the manifest gate in one
-  // record.
+  // `artistic_introduction_url` at import time, and `RecordSheetView`'s
+  // `related.databaseLabel`/`.artisticIntroductionLabel` (composables/
+  // gallery.js's `itemSheet` spec, inventory-app#1728) render a block iff
+  // that project's URL is non-null. The Sharing History project (this
+  // record's own) carries a related-database URL but no
+  // artistic-introduction one in amulets-data 1.0.15, exercising both
+  // branches of the manifest gate in one record.
   it('renders the related-database link from the manifest, and gates artistic introduction on it', async () => {
     const [items] = await loadEntities(['items'])
     const item = items.find((i) => i.id === '0dda7d39-b57f-5849-bcea-6897a0d0d4be')
     const project = manifest.projects[item.project_id]
 
     const { app, host } = await mountSite(`#/item/${item.id}`)
-    await vi.waitFor(() => expect(host.querySelector('.related-content-container')).not.toBeNull(), { timeout: 20000 })
-    const links = () => Array.from(host.querySelectorAll('.related-content-container a'))
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet-related')).not.toBeNull(), { timeout: 20000 })
+    const links = () => Array.from(host.querySelectorAll('.mwnf-sheet-related a'))
 
     expect(project.related_database_url).toBeTruthy()
     expect(host.textContent).toContain('Search Related Database')

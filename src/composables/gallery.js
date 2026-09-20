@@ -1,3 +1,4 @@
+import { eraLabel, roundOutward, useSiteConfig } from '@museumwnf/viewer-core'
 import {
   useGalleryData, useGalleryCollection, useGalleryTimeline, useGalleryPartner, useGallerySheet,
 } from '@museumwnf/viewer-core/dxa'
@@ -69,5 +70,96 @@ export const {
 export const { partnerList, partnerSheet, partnerObjects } = partner
 
 // ── The item sheet spec ─────────────────────────────────────────────────
+//
+// `sheet.js`'s own spec is what `RecordView` renders for every field, photo
+// and citation; `RecordSheetView` (the DXA item sheet's composed view,
+// inventory-app#1728) also reads a handful of keys that are genuinely this
+// gallery's own, built here on top of `sheet.itemSheet` rather than forking
+// the shared view: its project→colour chips (`dataset.config.js`'s
+// `projectColors`, epic #1727 phase 4), its Explore-partner notice
+// (`noticeProjects`), the holding-museum link, and the related-content
+// block's outside references, cross-database links and timeline popout.
+// `chipClass`/`notice.show` read `useSiteConfig()` lazily, inside the
+// function `RecordSheetView` calls at render time — `dataset.config.js`
+// itself imports this module before `createViewer()` sets the config, so a
+// top-level read here would only ever see the empty default.
 
-export const { itemSheet } = sheet
+function museumRoute(partnerId) {
+  const p = partnerById.value.get(partnerId)
+  return p ? partnerRoute(p) : null
+}
+
+// `DynastyList` wants the raw records plus a `tr` function, not the merged
+// shape a local popout used to build: it renders one `DynastyPopout` per
+// entry regardless, so the "has a history to show" filter stays here.
+function dynastyTranslation(dynasty, language) {
+  return translations('dynasties', language)[dynasty.id] ?? translations('dynasties', defaultLang)[dynasty.id] ?? {}
+}
+function itemDynasties(record, language) {
+  const records = (record.dynasty_ids ?? [])
+    .map((id) => dynastyById.value.get(id))
+    .filter((d) => d && dynastyTranslation(d, language).history)
+  return records.length ? { records, tr: (d) => dynastyTranslation(d, language) } : null
+}
+
+const { countries: timelineCountries, findEvents } = timelineEvents
+
+// The one popout `RecordSheetView` does not build itself, its shape unique
+// to each DXA family (a gallery's own countries, events lookup and search
+// route): `TimelineLookup` (`@museumwnf/viewer-layout/content`) renders the
+// `info` object this builds, for the record's own date range.
+function itemTimeline(record, ctx) {
+  const [from, to] = roundOutward(record.start_date, record.end_date)
+  if (from == null) return null
+  return {
+    heading: 'gallery.section.timeline',
+    countries: timelineCountries.value.map((c) => ({ value: c.value, label: c.label ?? ctx.t('timeline.form.allCountries') })),
+    defaultCountry: () => {
+      for (const { value: code } of timelineCountries.value) {
+        if (timelineCountryIdForCode(code) === record.country_id) return code
+      }
+      return 'all'
+    },
+    events: (country) => findEvents({ country, begin: from, end: to }),
+    range: [from, to],
+    era: (year) => eraLabel(year, ctx.t),
+    searchTo: (country, [begin, end]) => ({ name: 'timeline-results', query: { country, begin, end } }),
+  }
+}
+
+export const itemSheet = {
+  ...sheet.itemSheet,
+  sourceDatabase: {
+    chipClass: (record) => useSiteConfig().projectColors?.[record.project_id] ?? null,
+  },
+  notice: {
+    show: (record) => (useSiteConfig().noticeProjects ?? []).includes(record.project_id),
+    label: 'gallery.item.explorePartnerNote',
+  },
+  museum: {
+    route: (partnerId) => museumRoute(partnerId),
+    label: (partnerId) => labelOf('partners', partnerId),
+  },
+  related: {
+    ...sheet.itemSheet.related,
+    title: 'gallery.related.title',
+    description: 'gallery.related.description',
+    notInPackageLabel: 'gallery.results.notInThisGallery',
+    // amulets-data has carried `project_id` on every related-item stub,
+    // in_package or not, since amulets#60 — ahead of the exporter fix that
+    // gave carpets-data the same field (inventory-app#1807, carpets#67). The
+    // outside reference's chip class resolves through the same
+    // `projectColors` map as the source-database chip, keyed by
+    // `project_id`, not `project_key`. `RecordSheetView` itself still
+    // renders the chip's own text as the reference's raw `project_key`
+    // (docs/slot-catalogue.md's `related.outsideChip` key only drives the
+    // chip's class, not its label) — see the story's platform-gap note.
+    outsideChip: (ref) => useSiteConfig().projectColors?.[ref.project_id] ?? null,
+    artisticIntroductionLabel: 'gallery.nav.artisticIntroduction',
+    databaseLabel: 'gallery.search.relatedDatabase',
+    overallDatabase: { label: 'gallery.search.overallDatabase', linkLabel: 'gallery.nav.overallDatabase' },
+    onDisplayIn: { linkPendingLabel: 'gallery.item.linkPending' },
+    dynasties: (record, language) => itemDynasties(record, language),
+    timeline: itemTimeline,
+  },
+}
