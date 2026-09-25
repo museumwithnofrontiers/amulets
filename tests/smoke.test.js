@@ -128,7 +128,7 @@ describe('website smoke test', () => {
     await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet__label')).not.toBeNull(), { timeout: 20000 })
     expect(host.querySelector('.mwnf-record')).not.toBeNull()
     expect(host.querySelector('.mwnf-dxa-item__languages')).not.toBeNull()
-    // inventory-app#1728: `.related-content-container` is `RecordSheetView`'s
+    // inventory-app#1728: `.related-content-container` is `ItemDetailView`'s
     // own `.mwnf-sheet-related` block now, built from the family data layer's
     // `itemSheet.related` spec keys rather than local markup.
     expect(host.querySelector('.mwnf-sheet-related')).not.toBeNull()
@@ -137,7 +137,7 @@ describe('website smoke test', () => {
     // (`useProjects().label()`), not a legacy project-code badge — items[0]
     // is amulets' own borrowed "Discover Islamic Art" project (amulets-data
     // 1.0.15).
-    // inventory-app#1728: `.source-reference` is `RecordSheetView`'s own
+    // inventory-app#1728: `.source-reference` is `ItemDetailView`'s own
     // `.mwnf-sheet-source` block now, built from the family data layer's
     // `itemSheet.sourceDatabase` spec key rather than local markup.
     expect(host.querySelector('.mwnf-sheet-source').textContent).toContain('Discover Islamic Art')
@@ -166,7 +166,7 @@ describe('website smoke test', () => {
   it('colours and names the source-database chip from the manifest projects section', async () => {
     const { app, host } = await mountSite('#/item/0dda7d39-b57f-5849-bcea-6897a0d0d4be')
     await vi.waitFor(() => expect(host.querySelector('.mwnf-sheet-source .mwnf-chip')).not.toBeNull(), { timeout: 20000 })
-    // inventory-app#1728: `RecordSheetView`'s own `.mwnf-sheet-source__line`
+    // inventory-app#1728: `ItemDetailView`'s own `.mwnf-sheet-source__line`
     // renders the chip as a decorative, `aria-hidden` colour dot beside the
     // text — the project name is the line's own text now, not the chip
     // span's, unlike the local markup this replaces.
@@ -181,7 +181,7 @@ describe('website smoke test', () => {
   // list of project ids, not a literal legacy project-code check — it
   // must show for that project's own records and stay off everyone else's.
   // inventory-app#1728: `.links-container`/`.info-eiac` are
-  // `RecordSheetView`'s own `.mwnf-sheet-source`/`.mwnf-sheet-notice` now.
+  // `ItemDetailView`'s own `.mwnf-sheet-source`/`.mwnf-sheet-notice` now.
   it('shows the explore-partner notice only for the project dataset.config.js lists', async () => {
     const epm = await mountSite('#/item/e8cef6f7-62c2-5606-806d-9b7be4aaaae5')
     await vi.waitFor(() => expect(epm.host.querySelector('.mwnf-sheet-source')).not.toBeNull(), { timeout: 20000 })
@@ -197,7 +197,7 @@ describe('website smoke test', () => {
   // metanull/inventory-app#1727 phase 4: the related-database and
   // artistic-introduction blocks are purely manifest-driven now — the
   // exporter fills `manifest.projects[*].related_database_url` /
-  // `artistic_introduction_url` at import time, and `RecordSheetView`'s
+  // `artistic_introduction_url` at import time, and `ItemDetailView`'s
   // `related.databaseLabel`/`.artisticIntroductionLabel` (composables/
   // gallery.js's `itemSheet` spec, inventory-app#1728) render a block iff
   // that project's URL is non-null. The Sharing History project (this
