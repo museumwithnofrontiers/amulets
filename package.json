@@ -14,7 +14,7 @@
     "namespace": "amulets"
   },
   "dependencies": {
-    "@museumwnf/amulets-data": "^1.0.28",
+    "@museumwnf/amulets-data": "^1.0.29",
     "@museumwnf/viewer-core": "^2.10.0",
     "@museumwnf/viewer-i18n": "^6.1.0",
     "@museumwnf/viewer-layout": "^3.10.0",
